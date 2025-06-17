@@ -82,16 +82,25 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.queryset
+
         if self.action == "list":
             queryset = (
-                queryset.select_related("movie", "cinema_hall").annotate(
+                queryset.select_related("movie", "cinema_hall")
+                .annotate(
                     capacity=ExpressionWrapper(
-                        F("cinema_hall__rows") * F("cinema_hall__seats_in_row"),  # noqa: E501
+                        F("cinema_hall__rows") * F("cinema_hall__seats_in_row"),
                         output_field=IntegerField(),
                     ),
-                    tickets_available=F("capacity") - Count("tickets"),
+                    tickets_count=Count("tickets"),
                 )
-            ).order_by("id")
+                .annotate(
+                    tickets_available=ExpressionWrapper(
+                        F("capacity") - F("tickets_count"),
+                        output_field=IntegerField(),
+                    )
+                )
+                .order_by("id")
+            )
 
             movie = self.request.query_params.get("movie")
             if movie:
@@ -100,9 +109,7 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
             date_str = self.request.query_params.get("date")
             if date_str:
                 try:
-                    date_obj = (
-                        datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-                    )
+                    date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
                     queryset = queryset.filter(show_time__date=date_obj)
                 except ValueError:
                     pass
