@@ -97,24 +97,37 @@ class MovieSessionDetailSerializer(MovieSessionSerializer):
         ]
 
 
-class TicketSerializer(serializers.ModelSerializer):
+class TicketWriteSerializer(serializers.ModelSerializer):
+    movie_session = serializers.PrimaryKeyRelatedField(queryset=MovieSession.objects.all())
+
+    class Meta:
+        model = Ticket
+        fields = ("id", "row", "seat", "movie_session")
+
+
+class TicketReadSerializer(serializers.ModelSerializer):
     movie_session = MovieSessionListSerializer()
 
     class Meta:
         model = Ticket
-        fields = ("id", "row", "seat", "movie_session",)
+        fields = ("id", "row", "seat", "movie_session")
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    tickets = TicketSerializer(many=True, read_only=True)
+    tickets = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = ("id", "tickets", "created_at")
 
+    def get_tickets(self, obj):
+        return TicketReadSerializer(obj.tickets.all(), many=True).data
+
     def create(self, validated_data):
-        tickets_data = validated_data.pop("tickets")
+        tickets_data = self.initial_data.get("tickets", [])
         order = Order.objects.create(**validated_data)
         for ticket_data in tickets_data:
-            Ticket.objects.create(order=order, **ticket_data)
+            ticket_serializer = TicketWriteSerializer(data=ticket_data)
+            ticket_serializer.is_valid(raise_exception=True)
+            ticket_serializer.save(order=order)
         return order

@@ -1,6 +1,5 @@
 import datetime
 from rest_framework import viewsets
-from rest_framework.pagination import PageNumberPagination
 from django.db.models import F, Count, ExpressionWrapper, IntegerField
 
 from cinema.models import Genre, Actor, CinemaHall, Movie, MovieSession, Order
