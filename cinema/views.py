@@ -49,17 +49,17 @@ class MovieViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset
 
-        genres = self.request.query_params.get("genres") # type: ignore
+        genres = self.request.query_params.get("genres")  # type: ignore
         if genres:
             genre_ids = [int(str_id) for str_id in genres.split(",")]
             queryset = queryset.filter(genres__id__in=genre_ids).distinct()
 
-        actors = self.request.query_params.get("actors") # type: ignore
+        actors = self.request.query_params.get("actors")  # type: ignore
         if actors:
             actor_ids = [int(str_id) for str_id in actors.split(",")]
             queryset = queryset.filter(actors__id__in=actor_ids).distinct()
 
-        title = self.request.query_params.get("title") # type: ignore
+        title = self.request.query_params.get("title")  # type: ignore
         if title:
             queryset = queryset.filter(title__icontains=title)
 
@@ -101,11 +101,11 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
                 .order_by("id")
             )
 
-            movie = self.request.query_params.get("movie") # type: ignore
+            movie = self.request.query_params.get("movie")  # type: ignore
             if movie:
                 queryset = queryset.filter(movie__id=int(movie))
 
-            date_str = self.request.query_params.get("date") # type: ignore
+            date_str = self.request.query_params.get("date")  # type: ignore
             if date_str:
                 try:
                     date_obj = (

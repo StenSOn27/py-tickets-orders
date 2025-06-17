@@ -98,7 +98,9 @@ class MovieSessionDetailSerializer(MovieSessionSerializer):
 
 
 class TicketWriteSerializer(serializers.ModelSerializer):
-    movie_session = serializers.PrimaryKeyRelatedField(queryset=MovieSession.objects.all())
+    movie_session = serializers.PrimaryKeyRelatedField(
+        queryset=MovieSession.objects.all()
+    )
 
     class Meta:
         model = Ticket
@@ -124,7 +126,7 @@ class OrderSerializer(serializers.ModelSerializer):
         return TicketReadSerializer(obj.tickets.all(), many=True).data
 
     def create(self, validated_data):
-        tickets_data = self.initial_data.get("tickets", [])
+        tickets_data = self.initial_data.get("tickets", [])  # type: ignore
         order = Order.objects.create(**validated_data)
         for ticket_data in tickets_data:
             ticket_serializer = TicketWriteSerializer(data=ticket_data)
